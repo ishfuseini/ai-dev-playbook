@@ -1,0 +1,285 @@
+# Repo Documentation Strategy
+
+A guide for structuring documentation in AI-assisted projects. This covers two complementary systems:
+
+1. **Layered Documentation** — persistent, human-readable docs that describe the project at every level of granularity
+2. **Memory System** — a structured log of decisions, progress, and context that keeps AI tools grounded across sessions
+
+Used together, these ensure that any AI tool can get up to speed quickly, and that context is never lost between sessions.
+
+---
+
+## Why This Matters for AI-Assisted Development
+
+AI tools have no persistent memory between sessions. Without a structured documentation system:
+- You re-explain context at the start of every session
+- The AI makes decisions that conflict with earlier ones it can't see
+- Progress and rationale are lost when a task is handed off or resumed
+
+This documentation strategy solves that by making context **explicit, findable, and structured**.
+
+---
+
+## Part 1: Layered Documentation
+
+Documentation exists at four levels. Each level serves a different audience and purpose.
+
+| Level | File | Audience | Purpose |
+|-------|------|----------|---------|
+| **Project** | `AI_CONTEXT.md` | AI tools, new devs, stakeholders | Single source of truth for what this project is and how it works |
+| **Module** | `AI_SUMMARY.md` (per module) | AI tools, module owners | What this module does, its boundaries, and how to work with it |
+| **Task** | Workplan / task log | AI tools, developer working the task | Step-by-step context for a single piece of work |
+| **Code** | Inline comments, docstrings | AI tools, code reviewers | Why a specific implementation decision was made |
+
+---
+
+### File Tree
+
+```
+project-root/
+├── AI_CONTEXT.md               # Project-level overview (see contents below)
+├── docs/
+│   ├── architecture.md         # System design: components, data flow, infra
+│   └── decisions.md            # Index of all ADRs (links to individual records)
+└── src/
+    ├── module1/
+    │   └── AI_SUMMARY.md       # Module-level context (see contents below)
+    └── module2/
+        └── AI_SUMMARY.md
+```
+
+---
+
+### `AI_CONTEXT.md` — What to Include
+
+This is the first file an AI tool should read at the start of every session. Keep it concise and always up to date.
+
+```markdown
+# [Project Name] — AI Context
+
+## What This Project Does
+[1–2 sentences. What is it? Who uses it?]
+
+## Tech Stack
+[Language, framework, database, key libraries, deployment target]
+
+## Architecture Overview
+[Brief description of the major components and how they connect. Link to docs/architecture.md for detail.]
+
+## Key Conventions
+- [Naming conventions]
+- [Folder structure rules]
+- [State management approach]
+- [API patterns]
+
+## Where Things Live
+| Concern | Location |
+|---------|---------|
+| API routes | `src/api/` |
+| Business logic | `src/services/` |
+| UI components | `src/components/` |
+| Tests | `src/__tests__/` |
+
+## Current Focus
+[What is actively being worked on right now? What phase or milestone?]
+
+## Do Not Touch
+[Files, modules, or patterns that should not be modified without a team discussion]
+
+## Last Updated
+[Date and brief note on what changed]
+```
+
+---
+
+### `AI_SUMMARY.md` — What to Include
+
+One of these lives in each non-trivial module or feature directory. It gives an AI tool (or developer) enough context to work confidently inside the module without reading all the code.
+
+```markdown
+# [Module Name] — Summary
+
+## Purpose
+[What does this module do? What business problem does it solve?]
+
+## Boundaries
+- **Owns:** [What this module is responsible for]
+- **Does not own:** [What it explicitly delegates elsewhere]
+- **Depends on:** [Other modules or external services it calls]
+- **Used by:** [Modules or entry points that depend on this one]
+
+## Key Files
+| File | Purpose |
+|------|---------|
+| `index.ts` | Public API — only import from here |
+| `service.ts` | Core business logic |
+| `types.ts` | Shared types for this module |
+
+## Patterns Used
+[e.g. Repository pattern, event-driven updates, optimistic UI]
+
+## Known Gotchas
+[Anything non-obvious that has caused bugs or confusion before]
+
+## Last Updated
+[Date]
+```
+
+---
+
+### `docs/architecture.md` — What to Include
+
+A technical deep-dive into the system design. This is not a tutorial — it's a reference.
+
+- System components and their responsibilities
+- Data flow diagrams or descriptions
+- Infrastructure and deployment topology
+- External integrations and their contracts
+- Scalability and performance considerations
+- Security boundaries
+
+---
+
+### `docs/decisions.md` — What to Include
+
+An index of all Architecture Decision Records (ADRs), not the ADRs themselves.
+
+```markdown
+# Architecture Decisions
+
+| ADR | Title | Status | Date |
+|-----|-------|--------|------|
+| [ADR-001](./adrs/001-database-choice.md) | PostgreSQL over MongoDB | Accepted | 2024-01-10 |
+| [ADR-002](./adrs/002-auth-strategy.md) | JWT with refresh tokens | Accepted | 2024-02-03 |
+```
+
+See `22-adr-documentation.md` in this library for the ADR template.
+
+---
+
+## Part 2: Memory System
+
+Use this when you are **not** using a dedicated AI memory tool (e.g. no persistent memory integration in your IDE or agent).
+
+The Memory system is a structured folder of markdown logs that capture project state, phase progress, and atomic task history. It gives AI tools a way to resume work accurately after a session ends.
+
+---
+
+### File Tree
+
+```
+project-root/
+└── Memory/
+    ├── Memory_Root.md                   # High-level project state — always read first
+    ├── Phase_01_Foundation/
+    │   ├── Task_1_1_Project_Setup.md    # Atomic task log
+    │   ├── Task_1_2_Database_Setup.md
+    │   └── Task_1_3_Auth_Scaffold.md
+    ├── Phase_02_Core_Features/
+    │   ├── Task_2_1_User_Profiles.md
+    │   └── Task_2_2_Notifications.md
+    └── Phase_03_Polish/
+        └── ...
+```
+
+---
+
+### `Memory_Root.md` — What to Include
+
+The single file an AI reads to understand where the project stands today. Updated at the end of every phase or significant milestone.
+
+```markdown
+# [Project Name] — Memory Root
+
+## Project State
+**Current Phase:** Phase 02 — Core Features
+**Overall Progress:** ~40% complete
+**Last Updated:** [date]
+
+## What Has Been Built
+- [x] Phase 1: Project scaffold, DB schema, auth flow
+- [ ] Phase 2: User profiles, notifications (in progress)
+- [ ] Phase 3: Polish, deployment
+
+## Active Decisions
+[Key architectural or product decisions currently in effect — not the full ADR, just the outcome]
+- Using PostgreSQL with Prisma ORM
+- Auth is JWT-based with 7-day refresh tokens
+- All API routes follow REST conventions under `/api/v1/`
+
+## Current Blockers
+[Anything preventing progress that the AI or developer should be aware of]
+
+## Next Up
+[The next task or milestone to be worked on]
+```
+
+---
+
+### `Task_X_X_Name.md` — What to Include
+
+One file per atomic task. Created at the start of a task, updated as work progresses, and marked complete when done. This is the AI's working memory for a single unit of work.
+
+```markdown
+# Task [N.N]: [Task Title]
+
+**Phase:** [Phase name]
+**Status:** [Not Started | In Progress | Complete | Blocked]
+**Owner:** [Human | AI-Assisted | Hybrid]
+**Estimated Effort:** [S | M | L]
+**Last Updated:** [date]
+
+## Goal
+[What does done look like for this task?]
+
+## Context
+[What does the AI need to know to start this task? Reference AI_CONTEXT.md and any relevant AI_SUMMARY.md files.]
+
+## Steps
+- [ ] Step 1
+- [ ] Step 2
+- [ ] Step 3
+
+## Decisions Made
+[Any decisions made during this task that affected the implementation. Be specific — future tasks may depend on this.]
+
+## Files Changed
+[List of files created or modified]
+
+## Output
+[What concretely exists now that didn't before? Link to files, endpoints, or components.]
+
+## Notes / Gotchas
+[Anything that went wrong, took longer than expected, or that the next developer/AI should know]
+```
+
+---
+
+## Maintenance Rules
+
+A documentation system only works if it stays current. Follow these rules:
+
+| Trigger | Action |
+|---------|--------|
+| Starting a new session | Read `AI_CONTEXT.md` and `Memory_Root.md` before writing any code |
+| Starting a new task | Create a `Task_X_X_Name.md` file in the current phase directory |
+| Completing a task | Mark steps done, fill in Decisions Made, Files Changed, and Output |
+| Completing a phase | Update `Memory_Root.md` with phase summary and next steps |
+| Making an architectural decision | Write an ADR and add it to `docs/decisions.md` |
+| Adding or significantly changing a module | Update or create the module's `AI_SUMMARY.md` |
+| Major scope or stack change | Update `AI_CONTEXT.md` immediately |
+
+---
+
+## Quick-Start Prompt
+
+Use this at the start of any AI session to orient the AI:
+
+```
+Before we begin, please read the following files in order:
+1. AI_CONTEXT.md — project overview and conventions
+2. Memory/Memory_Root.md — current project state and active decisions
+3. Memory/[CurrentPhase]/[CurrentTask].md — the task we're working on
+
+Once you've read them, confirm what you understand the goal to be and flag any gaps before writing any code.
+```

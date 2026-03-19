@@ -1,0 +1,68 @@
+---
+description: Enforce simple, readable, maintainable code. Apply when writing, editing, or reviewing code across the codebase.
+globs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.py"]
+alwaysApply: true
+---
+
+# Coding Rules
+
+## Clarity
+- Prefer simple, readable code over clever solutions
+- Avoid unnecessary abstraction
+- Use descriptive names
+
+## Structure
+- Keep functions small and single-purpose
+- Keep files focused and modular
+- Group related logic together
+
+## Interfaces
+- Use explicit inputs and outputs
+- Use types where possible
+- Avoid hidden side effects
+
+## Error Handling
+- Validate inputs at boundaries
+- Fail early with clear, actionable errors
+
+## Consistency
+- Follow existing project patterns and conventions
+- Do not introduce new patterns without clear justification
+
+## Observability
+- Add logs where debugging would be difficult
+- Avoid excessive or noisy logging
+
+## AI Behavior
+- Treat generated code as a draft, not final
+- Make minimal, targeted changes
+- Do not refactor unrelated code
+
+---
+
+## Cursor-Specific Workflow
+
+### Context — Always Provide Before Coding
+- Use `@file` to attach directly relevant files before asking Cursor to write or edit code
+- Use `@codebase` for broad questions about how the project works
+- Use `@docs` when working with a library that has indexed documentation
+- Attach `AI_CONTEXT.md` at the start of a new session to orient Cursor on the project
+
+### Composer vs Chat
+| Use Composer when... | Use Chat when... |
+|----------------------|-----------------|
+| Writing or editing code across one or more files | Asking questions or exploring an idea |
+| Executing a scoped task end-to-end | Getting an explanation of existing code |
+| Running a multi-step implementation | Comparing approaches before committing |
+
+### Scoping Agent Runs
+- Give Composer one clearly defined task at a time
+- Include a constraints block in every Composer prompt (see `22-constraints.md`)
+- After Composer finishes, review the diff before accepting — treat output as a draft
+- If Composer goes off-track, cancel and restart with a tighter, more explicit prompt
+
+### Useful Prompt Patterns in Cursor
+- `@file:path/to/file.ts` — scope the task to a specific file
+- `@selection` — act only on the highlighted code
+- "Do not modify any other files" — explicit scope constraint
+- "Show me a plan before writing any code" — get approval before execution
